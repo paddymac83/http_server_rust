@@ -32,7 +32,7 @@ impl Server {
                     }// stream is returned from listerner and copied to initialised buffer
                 },
                 Err(e) => {
-                    println!("Err {}", e);  // error object
+                    println!("Err {}", e);  // error objects
 
                 }
 
