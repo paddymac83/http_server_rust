@@ -24,9 +24,29 @@ impl TryFrom<&[u8]> for Request {
     
     fn try_from(buf: &[u8]) -> <Self, Self::Error> {
         let request = str::from_utf8(buf)?  // err is linked to ParseError with From<Utf8Error> trait defined
+
+        let (method, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;  // convert Option to Result
+        let (path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+        let (protocol, _) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+
+        // check its 1.1
+        if protocol != "HTTP/1.1" {
+            return Err(ParseError::InvalidProtocol);
+        }
         unimplemented!()
     }
 
+}
+
+// helper to extract words from request
+fn get_next_word(request: &str) -> Option<(&str, &str)> {   // to track pos in request
+
+    for (i, c) in request.chars().enumerate() {
+        if c == " " || c == "\r"  {
+            return Some((&request[..i], &request[i+1..]));   // return up to the first space. in tuple
+        }
+
+    }
 }
 
 // enum to capture error types
