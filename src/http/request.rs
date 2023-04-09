@@ -1,4 +1,4 @@
-use super::method::Method;
+use super::method::{Method, MethodError};
 use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt::{Display, Result as FmtResult, Formatter, Debug};
@@ -25,8 +25,9 @@ impl TryFrom<&[u8]> for Request {
     fn try_from(buf: &[u8]) -> <Self, Self::Error> {
         let request = str::from_utf8(buf)?  // err is linked to ParseError with From<Utf8Error> trait defined
 
+        // note the spaces leave the path/query string still connected by a ?
         let (method, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;  // convert Option to Result
-        let (path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+        let (mut path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
         let (protocol, _) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
 
         // check its 1.1
@@ -34,6 +35,15 @@ impl TryFrom<&[u8]> for Request {
             return Err(ParseError::InvalidProtocol);
         }
         unimplemented!()
+
+        let method: Method = method.parse()?;   // impl FromStr trait on method enum, we get the .parse func for free
+
+        let mut query_string = None;
+
+        if let Some(i) = path.find("?"){
+            query_string = Some(&path[i+1..]);   // everything after the first ? mark 
+            path = &path[..i];
+        }
     }
 
 }
@@ -72,6 +82,12 @@ impl ParseError {
 impl From<Utf8Error> for ParseError {
     fn from(_: Utf8Error) -> Self {
         ParseError::InvalidEncoding
+    }
+}
+
+impl From<MethodError> for ParseError {
+    fn from(_: MethodError) -> Self {
+        ParseError::InvalidMethod
     }
 }
 
