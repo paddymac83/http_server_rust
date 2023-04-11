@@ -1,24 +1,45 @@
-use std::{collections::HashMap, intrinsics::unlikely};
+use std::collections::HashMap;
 
+#[derive(Debug)]
 pub struct QueryString<'buf> {
-    data: HashMap<&'buf str, Value<'buf>>  // key-value pair, with value linked to an enum
+    data: HashMap<&'buf str, Value<'buf>>,
 }
 
-pub enum Value<'buf> {    // capture variaible types within query string
-    Single(&str),
-    Multiple(Vec<&'buf str>),    // Vec is a heap-allocated dynamic array..
+#[derive(Debug)]
+pub enum Value<'buf> {
+    Single(&'buf str),
+    Multiple(Vec<&'buf str>),
 }
 
 impl<'buf> QueryString<'buf> {
-    fn get(&self, key: &str) -> Option<&Value> {
-        self.data.get(key)   // returns ref to value specified by the key :-)
+    pub fn get(&self, key: &str) -> Option<&Value> {
+        self.data.get(key)
     }
 }
 
+// a=1&b=2&c&d=&e===&d=7&d=abc
 impl<'buf> From<&'buf str> for QueryString<'buf> {
     fn from(s: &'buf str) -> Self {
         let mut data = HashMap::new();
-        QueryString { data }  // empty
-    }
 
+        for sub_str in s.split('&') {
+            let mut key = sub_str;
+            let mut val = "";
+            if let Some(i) = sub_str.find('=') {
+                key = &sub_str[..i];
+                val = &sub_str[i + 1..];
+            }
+
+            data.entry(key)
+                .and_modify(|existing: &mut Value| match existing {
+                    Value::Single(prev_val) => {
+                        *existing = Value::Multiple(vec![prev_val, val]);
+                    }
+                    Value::Multiple(vec) => vec.push(val),
+                })
+                .or_insert(Value::Single(val));
+        }
+
+        QueryString { data }
+    }
 }

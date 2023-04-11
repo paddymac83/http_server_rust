@@ -4,10 +4,11 @@ use std::error::Error;
 use std::fmt::{Display, Result as FmtResult, Formatter, Debug};
 use std::str;
 use std::str::Utf8Error;
+use super::{QueryString};
 
 pub struct Request<'buf> {   // generic over lifetime 'a, lifencestime of the buffer it refere
     path: &'buf str,
-    query_string: Option<&'buf str>,
+    query_string: Option<QueryString<'buf>>,
     method: super::method::Method,
 }
 
@@ -41,7 +42,7 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
         let mut query_string = None;
 
         if let Some(i) = path.find("?"){
-            query_string = Some(&path[i+1..]);   // everything after the first ? mark 
+            query_string = Some(QueryString::from(&path[i+1..]));   // everything after the first ? mark 
             path = &path[..i];
         }
         // return request value (Ok(Self))
