@@ -5,25 +5,25 @@ use std::fmt::{Display, Result as FmtResult, Formatter, Debug};
 use std::str;
 use std::str::Utf8Error;
 
-pub struct Request {
-    path: &str,
-    query_string: Option<&str>,
+pub struct Request<'buf> {   // generic over lifetime 'a, lifencestime of the buffer it refere
+    path: &'buf str,
+    query_string: Option<&'buf str>,
     method: super::method::Method,
 }
 
-impl Request {
+impl<'buf> Request<'buf> {
     fn bytes_from_array(buf: &[u8]) -> Result<Self, String> {  // convert buffer to Request type
         unimplemented!();
 
     }
 }
 
-impl TryFrom<&[u8]> for Request {
+impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
     type Error = ParseError;   // custom error type
 
     // GET /search?name=abc&sort=1 HTTP/1.1
     
-    fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+    fn try_from(buf: &'buf [u8]) -> Result<Self, Self::Error> {   // the buf ref should live as long as the return type
         let request = str::from_utf8(buf)?;  // err is linked to ParseError with From<Utf8Error> trait defined
 
         // note the spaces leave the path/query string still connected by a ?
@@ -41,12 +41,12 @@ impl TryFrom<&[u8]> for Request {
         let mut query_string = None;
 
         if let Some(i) = path.find("?"){
-            query_string = Some(path[i+1..]);   // everything after the first ? mark 
+            query_string = Some(&path[i+1..]);   // everything after the first ? mark 
             path = &path[..i];
         }
-        // return request value (Ok(Self)) - tester
+        // return request value (Ok(Self))
         Ok(Self {
-            path: path,   // expects a string, not a str slice
+            path,   // expects a string, not a str slice
             query_string,             // expects Option(String)
             method
         })

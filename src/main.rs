@@ -1,4 +1,7 @@
+#![allow(dead_code)]  // linter activation
+
 use server::Server;
+
 use http::Request;
 use http::Method;
 
