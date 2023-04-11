@@ -44,7 +44,7 @@ impl TryFrom<&[u8]> for Request {
             query_string = Some(path[i+1..]);   // everything after the first ? mark 
             path = &path[..i];
         }
-        // return request value (Ok(Self))
+        // return request value (Ok(Self)) - tester
         Ok(Self {
             path: path,   // expects a string, not a str slice
             query_string,             // expects Option(String)
