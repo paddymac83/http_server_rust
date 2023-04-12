@@ -6,6 +6,8 @@ use std::str;
 use std::str::Utf8Error;
 use super::{QueryString};
 
+#[derive(Debug)]   // derive the debug trait for the request type, ! means it applies to the entire module
+
 pub struct Request<'buf> {   // generic over lifetime 'a, lifencestime of the buffer it refere
     path: &'buf str,
     query_string: Option<QueryString<'buf>>,

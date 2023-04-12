@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+#[derive(Debug)]
 pub enum Method {
     GET,
     DELETE,
@@ -17,7 +18,6 @@ impl FromStr for Method {
 
     // this will accept the Method part of the http string
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        unimplemented!();
         match s {
             "GET" => Ok(Self::GET),
             "DELETE" => Ok(Self::DELETE),
