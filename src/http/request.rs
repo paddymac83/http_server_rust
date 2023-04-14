@@ -14,10 +14,18 @@ pub struct Request<'buf> {   // generic over lifetime 'a, lifencestime of the bu
     method: super::method::Method,
 }
 
+// getters
 impl<'buf> Request<'buf> {
-    fn bytes_from_array(buf: &[u8]) -> Result<Self, String> {  // convert buffer to Request type
-        unimplemented!();
+    pub fn path(&self) -> &str {
+        &self.path
+    }
 
+    pub fn method(&self) -> &Method {
+        &self.method
+    }
+
+    pub fn query_string(&self) -> Option<&QueryString> {
+        self.query_string.as_ref()   // takes a ref to the value wrapped inside an Option
     }
 }
 
